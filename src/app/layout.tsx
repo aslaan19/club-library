@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { Cairo } from "next/font/google";
 import "./globals.css";
 
-const cairo = Cairo({ 
+const cairo = Cairo({
   subsets: ["arabic"],
-  weight: ['400', '600', '700'],
+  weight: ["400", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" suppressHydrationWarning>
       <body className={`${cairo.className} antialiased bg-gray-50`}>
         {children}
       </body>

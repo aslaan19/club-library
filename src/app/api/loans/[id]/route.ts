@@ -1,14 +1,12 @@
-// src/app/api/loans/[id]/return/route.ts
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export async function POST(
+export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params
   const supabase = createRouteHandlerClient({ cookies })
   const {
     data: { session },
@@ -19,8 +17,10 @@ export async function POST(
   }
 
   const loan = await prisma.loan.findUnique({
-    where: { id },
-    include: { book: true },
+    where: { id: params.id },
+    include: {
+      book: true,
+    },
   })
 
   if (!loan) {
@@ -39,20 +39,5 @@ export async function POST(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  // Update loan
-  const updatedLoan = await prisma.loan.update({
-    where: { id },
-    data: {
-      status: 'RETURNED',
-      returnDate: new Date(),
-    },
-  })
-
-  // Update book status
-  await prisma.book.update({
-    where: { id: loan.bookId },
-    data: { status: 'AVAILABLE' },
-  })
-
-  return NextResponse.json(updatedLoan)
+  return NextResponse.json(loan)
 }

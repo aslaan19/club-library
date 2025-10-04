@@ -4,8 +4,9 @@ generator client {
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DIRECT_URL")
+    provider  = "postgresql"
+    url       = env("DATABASE_URL")
+    directUrl = env("DIRECT_URL")
 }
 
 enum UserRole {
@@ -25,6 +26,12 @@ enum BookStatus {
     MAINTENANCE
 }
 
+enum ContributionStatus {
+    PENDING
+    APPROVED
+    REJECTED
+}
+
 model User {
     id        String   @id @default(uuid())
     email     String   @unique
@@ -36,6 +43,7 @@ model User {
     // Relations
     loans         Loan[]
     contributions Book[] // الكتب اللي أضافها تطوعًا
+    bookRequests  Contribution[]
 
     @@map("users")
 }
@@ -57,7 +65,8 @@ model Book {
     updatedAt DateTime @updatedAt
 
     // Relations
-    loans Loan[]
+    loans         Loan[]
+    contributions Contribution[]
 
     @@map("books")
 }
@@ -80,4 +89,22 @@ model Loan {
     updatedAt DateTime @updatedAt
 
     @@map("loans")
+}
+
+model Contribution {
+    id     String             @id @default(uuid())
+    status ContributionStatus @default(PENDING)
+    note   String?
+
+    // Relations
+    userId String
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    bookId String
+    book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("contributions")
 }

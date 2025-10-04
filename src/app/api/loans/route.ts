@@ -1,11 +1,11 @@
-// app/api/loans/route.ts
+// src/app/api/loans/route.ts
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
-import { prisma } from '../../../../lib/prisma'
-import { addDays, differenceInDays } from 'date-fns'
+import { prisma } from '@/lib/prisma'
+import { addDays } from 'date-fns'
 
-// GET: جلب استعارات المستخدم
+// GET: Get user's loans
 export async function GET(request: Request) {
   const supabase = createRouteHandlerClient({ cookies })
   const {
@@ -33,7 +33,7 @@ export async function GET(request: Request) {
   return NextResponse.json(loans)
 }
 
-// POST: استعارة كتاب جديد
+// POST: Borrow a book
 export async function POST(request: Request) {
   const supabase = createRouteHandlerClient({ cookies })
   const {
@@ -44,9 +44,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { bookId, dueDate } = await request.json()
+  const { bookId, days } = await request.json()
 
-  // تحقق من الكتاب
+  // Check book availability
   const book = await prisma.book.findUnique({
     where: { id: bookId },
     include: {
@@ -66,31 +66,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Book is already borrowed' }, { status: 400 })
   }
 
-  // تحقق من حد 14 يوم
-  const dueDateObj = new Date(dueDate)
-  const today = new Date()
-  const daysDiff = differenceInDays(dueDateObj, today)
-
-  if (daysDiff > 14) {
+  // Validate days (max 14)
+  if (days > 14 || days < 1) {
     return NextResponse.json(
-      { error: 'Maximum loan period is 14 days' },
+      { error: 'Loan period must be between 1 and 14 days' },
       { status: 400 }
     )
   }
 
-  if (daysDiff < 1) {
-    return NextResponse.json(
-      { error: 'Due date must be in the future' },
-      { status: 400 }
-    )
-  }
+  const dueDate = addDays(new Date(), days)
 
-  // إنشاء الاستعارة
+  // Create loan
   const loan = await prisma.loan.create({
     data: {
       userId: session.user.id,
       bookId,
-      dueDate: dueDateObj,
+      dueDate,
       status: 'ACTIVE',
     },
     include: {
@@ -98,48 +89,11 @@ export async function POST(request: Request) {
     },
   })
 
-  // تحديث حالة الكتاب
+  // Update book status
   await prisma.book.update({
     where: { id: bookId },
     data: { status: 'BORROWED' },
   })
 
   return NextResponse.json(loan)
-}
-
-
-
-// app/api/loans/overdue/route.ts - جلب الاستعارات المتأخرة
-export async function GET_OVERDUE() {
-  const today = new Date()
-
-  const overdueLoans = await prisma.loan.findMany({
-    where: {
-      status: 'ACTIVE',
-      dueDate: {
-        lt: today,
-      },
-    },
-    include: {
-      book: true,
-      user: {
-        select: { name: true, email: true },
-      },
-    },
-  })
-
-  // تحديث حالتها إلى OVERDUE
-  await prisma.loan.updateMany({
-    where: {
-      status: 'ACTIVE',
-      dueDate: {
-        lt: today,
-      },
-    },
-    data: {
-      status: 'OVERDUE',
-    },
-  })
-
-  return NextResponse.json(overdueLoans)
 }
