@@ -1,0 +1,83 @@
+// prisma/schema.prisma
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DIRECT_URL")
+}
+
+enum UserRole {
+    STUDENT
+    ADMIN
+}
+
+enum LoanStatus {
+    ACTIVE
+    RETURNED
+    OVERDUE
+}
+
+enum BookStatus {
+    AVAILABLE
+    BORROWED
+    MAINTENANCE
+}
+
+model User {
+    id        String   @id @default(uuid())
+    email     String   @unique
+    name      String
+    role      UserRole @default(STUDENT)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Relations
+    loans         Loan[]
+    contributions Book[] // الكتب اللي أضافها تطوعًا
+
+    @@map("users")
+}
+
+model Book {
+    id          String     @id @default(uuid())
+    title       String
+    author      String
+    description String?
+    category    String
+    coverImage  String?
+    status      BookStatus @default(AVAILABLE)
+
+    // المتطوع اللي أضاف الكتاب (اختياري)
+    contributorId String?
+    contributor   User?   @relation(fields: [contributorId], references: [id], onDelete: SetNull)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Relations
+    loans Loan[]
+
+    @@map("books")
+}
+
+model Loan {
+    id         String     @id @default(uuid())
+    status     LoanStatus @default(ACTIVE)
+    borrowDate DateTime   @default(now())
+    dueDate    DateTime
+    returnDate DateTime?
+
+    // Relations
+    userId String
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    bookId String
+    book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("loans")
+}
