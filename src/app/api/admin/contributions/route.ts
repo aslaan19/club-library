@@ -2,7 +2,6 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { ContributionStatus } from '@prisma/client';
 
 export async function GET(request: Request) {
   const supabase = createRouteHandlerClient({ cookies });
@@ -31,6 +30,7 @@ export async function GET(request: Request) {
   const skip = (page - 1) * limit;
 
   // Build the where clause based on status
+  type ContributionStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
   const where = status && status !== 'ALL' ? { status: status as ContributionStatus } : {};
 
   // Get contributions with user and book details

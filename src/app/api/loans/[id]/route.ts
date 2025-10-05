@@ -5,9 +5,18 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = createRouteHandlerClient({ cookies })
+  // cookies() is now async in Next.js 15
+  const cookieStore = await cookies()
+
+  // The createRouteHandlerClient now expects cookies as a function
+  const supabase = createRouteHandlerClient({ cookies: async() => cookieStore })
+
+  // Route params are now possibly async in the latest Next.js App Router
+  const resolvedParams = await params
+
+  // Get session from Supabase
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -16,18 +25,17 @@ export async function GET(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // Fetch the loan
   const loan = await prisma.loan.findUnique({
-    where: { id: params.id },
-    include: {
-      book: true,
-    },
+    where: { id: resolvedParams.id },
+    include: { book: true },
   })
 
   if (!loan) {
     return NextResponse.json({ error: 'Loan not found' }, { status: 404 })
   }
 
-  // Check if user is the borrower or admin
+  // Fetch user
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
   })
@@ -39,5 +47,6 @@ export async function GET(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  // Return data
   return NextResponse.json(loan)
 }

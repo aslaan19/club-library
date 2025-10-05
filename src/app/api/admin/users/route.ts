@@ -23,7 +23,12 @@ export async function GET() {
   }
 
   const users = await prisma.user.findMany({
-    include: {
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      createdAt: true,
       _count: {
         select: {
           loans: true,
@@ -36,7 +41,25 @@ export async function GET() {
       },
     },
     orderBy: { createdAt: 'desc' },
-  })
+  }) as Array<{
+    id: string
+    email: string
+    name: string | null
+    role: string
+    createdAt: Date
+    _count: {
+      loans: number
+      contributions: number
+    }
+    loans: Array<{ id: string }>
+  }>
 
-  return NextResponse.json(users)
+  return NextResponse.json({ 
+    users: users.map(({ _count: count, loans, ...user }) => ({
+      ...user,
+      loanCount: count.loans,
+      contributionCount: count.contributions,
+      overdueLoans: loans.length,
+    }))
+  })
 }

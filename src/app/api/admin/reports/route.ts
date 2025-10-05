@@ -85,13 +85,13 @@ export async function GET(request: Request) {
     })
 
     const formattedMostBorrowed = mostBorrowedBooks
-      .map((book) => ({
+      .map((book: { id: any; title: any; author: any; _count: { loans: any } }) => ({
         id: book.id,
         title: book.title,
         author: book.author,
         borrowCount: book._count.loans,
       }))
-      .filter((book) => book.borrowCount > 0)
+      .filter((book: { borrowCount: number }) => book.borrowCount > 0)
 
     // 3. أكثر المتطوعين
     const topContributors = await prisma.user.findMany({
@@ -116,7 +116,7 @@ export async function GET(request: Request) {
       take: 5,
     })
 
-    const formattedContributors = topContributors.map((user) => ({
+    const formattedContributors = topContributors.map((user: { id: any; name: any; _count: { contributions: any } }) => ({
       id: user.id,
       name: user.name,
       contributionCount: user._count.contributions,
@@ -147,7 +147,7 @@ export async function GET(request: Request) {
 
     // دمج النشاطات
     const activities = [
-      ...recentLoans.map((loan) => ({
+      ...recentLoans.map((loan: { status: string; returnDate: { toISOString: () => any }; createdAt: { toISOString: () => any }; user: { name: any }; book: { title: any } }) => ({
         type: loan.status === 'RETURNED' ? 'RETURN' : 'LOAN' as const,
         date: loan.returnDate?.toISOString() || loan.createdAt.toISOString(),
         details:
@@ -157,7 +157,7 @@ export async function GET(request: Request) {
         userName: loan.user.name,
         bookTitle: loan.book.title,
       })),
-      ...recentContributions.map((book) => ({
+      ...recentContributions.map((book: { createdAt: { toISOString: () => any }; contributor: { name: any }; title: any }) => ({
         type: 'CONTRIBUTION' as const,
         date: book.createdAt.toISOString(),
         details: `إضافة كتاب جديد للمكتبة`,

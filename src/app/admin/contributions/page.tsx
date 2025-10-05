@@ -1,6 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GitPullRequest, CheckCircle, XCircle, Clock } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 type Contribution = {
   id: string;
@@ -32,7 +54,8 @@ export default function AdminContributionsPage() {
         const data = await response.json();
         setContributions(data.contributions || []);
       } catch (error) {
-        console.error("Failed to fetch contributions:", error);
+        alert("فشل في تحميل المساهمات")
+        
       } finally {
         setLoading(false);
       }
@@ -43,8 +66,12 @@ export default function AdminContributionsPage() {
 
   const handleStatusUpdate = async (
     id: string,
-    status: "APPROVED" | "REJECTED"
+    status: "APPROVED" | "REJECTED",
+    bookTitle: string
   ) => {
+    const action = status === "APPROVED" ? "قبول" : "رفض";
+    if (!confirm(`هل تريد ${action} مساهمة الكتاب "${bookTitle}"؟`)) return;
+
     try {
       const response = await fetch(`/api/admin/contributions/${id}`, {
         method: "PATCH",
@@ -56,121 +83,227 @@ export default function AdminContributionsPage() {
 
       if (!response.ok) throw new Error("Failed to update contribution status");
 
-      // Update the contribution in the list
       const updatedContribution = await response.json();
       setContributions(
         contributions.map((contribution) =>
           contribution.id === id ? updatedContribution : contribution
         )
       );
+
+      alert(`تم ${action} المساهمة بنجاح`);
     } catch (error) {
       console.error("Failed to update contribution status:", error);
+      alert(`فشل في ${action} المساهمة`);
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-96 w-full" />
+      </div>
+    );
+  }
+
+  const pendingCount = contributions.filter(
+    (c) => c.status === "PENDING"
+  ).length;
+  const approvedCount = contributions.filter(
+    (c) => c.status === "APPROVED"
+  ).length;
+  const rejectedCount = contributions.filter(
+    (c) => c.status === "REJECTED"
+  ).length;
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Manage Contributions</h1>
-        <div className="space-x-2">
-          {(["ALL", "PENDING", "APPROVED", "REJECTED"] as const).map(
-            (status) => (
-              <button
-                key={status}
-                onClick={() => setFilter(status)}
-                className={`px-3 py-1 rounded ${
-                  filter === status
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200 text-gray-700"
-                }`}
-              >
-                {status.charAt(0) + status.slice(1).toLowerCase()}
-              </button>
-            )
-          )}
-        </div>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">إدارة المساهمات</h1>
+        <p className="text-muted-foreground mt-1">
+          مراجعة وقبول مساهمات الكتب من المستخدمين
+        </p>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Book
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Contributor
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Date
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {contributions.map((contribution) => (
-              <tr key={contribution.id}>
-                <td className="px-6 py-4">
-                  <div>
-                    <div className="font-medium">{contribution.book.title}</div>
-                    <div className="text-sm text-gray-500">
-                      {contribution.book.author}
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {contribution.user.email}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {new Date(contribution.createdAt).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 py-1 text-xs rounded-full ${
-                      contribution.status === "APPROVED"
-                        ? "bg-green-100 text-green-800"
-                        : contribution.status === "REJECTED"
-                        ? "bg-red-100 text-red-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
-                  >
-                    {contribution.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {contribution.status === "PENDING" && (
-                    <div className="space-x-2">
-                      <button
-                        onClick={() =>
-                          handleStatusUpdate(contribution.id, "APPROVED")
-                        }
-                        className="text-green-600 hover:text-green-900"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() =>
-                          handleStatusUpdate(contribution.id, "REJECTED")
-                        }
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-gradient-to-br from-warning/5 to-warning/10 border-warning/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              بانتظار المراجعة
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{pendingCount}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-success/5 to-success/10 border-success/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              المقبولة
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{approvedCount}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-destructive/5 to-destructive/10 border-destructive/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <XCircle className="h-4 w-4" />
+              المرفوضة
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{rejectedCount}</div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Contributions Table with Tabs */}
+      <Card>
+        <CardHeader>
+          <CardTitle>قائمة المساهمات</CardTitle>
+          <CardDescription>
+            جميع مساهمات الكتب المقدمة من المستخدمين
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs
+            value={filter}
+            onValueChange={(v: string) => setFilter(v as typeof filter)}
+          >
+            <TabsList className="grid w-full grid-cols-4 mb-6">
+              <TabsTrigger value="ALL">الكل</TabsTrigger>
+              <TabsTrigger value="PENDING">معلقة</TabsTrigger>
+              <TabsTrigger value="APPROVED">مقبولة</TabsTrigger>
+              <TabsTrigger value="REJECTED">مرفوضة</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value={filter}>
+              {contributions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16">
+                  <GitPullRequest className="h-16 w-16 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">لا توجد مساهمات</p>
+                </div>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">الكتاب</TableHead>
+                        <TableHead className="text-right">المساهم</TableHead>
+                        <TableHead className="text-right">التاريخ</TableHead>
+                        <TableHead className="text-right">الحالة</TableHead>
+                        <TableHead className="text-right">الإجراءات</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {contributions.map((contribution) => (
+                        <TableRow
+                          key={contribution.id}
+                          className="hover:bg-muted/50"
+                        >
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">
+                                {contribution.book.title}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {contribution.book.author}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {contribution.user.email}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {format(
+                              new Date(contribution.createdAt),
+                              "d MMM yyyy",
+                              {
+                                locale: ar,
+                              }
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={
+                                contribution.status === "APPROVED"
+                                  ? "bg-success/10 text-success border-success/20"
+                                  : contribution.status === "REJECTED"
+                                  ? "bg-destructive/10 text-destructive border-destructive/20"
+                                  : "bg-warning/10 text-warning border-warning/20"
+                              }
+                            >
+                              {contribution.status === "APPROVED" ? (
+                                <>
+                                  <CheckCircle className="h-3 w-3 ml-1" />
+                                  مقبولة
+                                </>
+                              ) : contribution.status === "REJECTED" ? (
+                                <>
+                                  <XCircle className="h-3 w-3 ml-1" />
+                                  مرفوضة
+                                </>
+                              ) : (
+                                <>
+                                  <Clock className="h-3 w-3 ml-1" />
+                                  معلقة
+                                </>
+                              )}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {contribution.status === "PENDING" && (
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleStatusUpdate(
+                                      contribution.id,
+                                      "APPROVED",
+                                      contribution.book.title
+                                    )
+                                  }
+                                  className="hover:bg-success/10 hover:text-success hover:border-success"
+                                >
+                                  قبول
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleStatusUpdate(
+                                      contribution.id,
+                                      "REJECTED",
+                                      contribution.book.title
+                                    )
+                                  }
+                                  className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
+                                >
+                                  رفض
+                                </Button>
+                              </div>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 }

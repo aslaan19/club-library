@@ -7,7 +7,8 @@ import { addDays } from 'date-fns'
 
 // GET: Get user's loans
 export async function GET(request: Request) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const cookieStore = await cookies()
+  const supabase = createRouteHandlerClient({ cookies: async () => cookieStore })
   const {
     data: { session },
   } = await supabase.auth.getSession()

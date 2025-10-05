@@ -1,32 +1,52 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { ArrowRight, BookOpen, Upload, ImageIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowRight, BookOpen, Upload, ImageIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const CATEGORIES = ["تاريخ", "روايات", "دين", "سياسة", "تطوير ذات", "علوم", "فلسفة"]
+const CATEGORIES = [
+  "تاريخ",
+  "روايات",
+  "دين",
+  "سياسة",
+  "تطوير ذات",
+  "علوم",
+  "فلسفة",
+];
 
 export default function AddBookPage() {
-  const [title, setTitle] = useState("")
-  const [author, setAuthor] = useState("")
-  const [description, setDescription] = useState("")
-  const [category, setCategory] = useState("")
-  const [coverImage, setCoverImage] = useState("")
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
+  const [title, setTitle] = useState("");
+  const [author, setAuthor] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
+  const [coverImage, setCoverImage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     const res = await fetch("/api/books", {
       method: "POST",
@@ -38,17 +58,17 @@ export default function AddBookPage() {
         category,
         coverImage: coverImage || null,
       }),
-    })
+    });
 
     if (res.ok) {
-      alert("تمت إضافة الكتاب بنجاح!")
-      router.push("/books")
+      alert("تمت إضافة الكتاب بنجاح!");
+      router.push("/books");
     } else {
-      const error = await res.json()
-      alert(error.error || "حدث خطأ")
+      const error = await res.json();
+      alert(error.error || "حدث خطأ");
     }
-    setLoading(false)
-  }
+    setLoading(false);
+  };
 
   return (
     <div className="container mx-auto p-4 md:p-8 max-w-3xl animate-in fade-in duration-500">
@@ -66,7 +86,9 @@ export default function AddBookPage() {
           </div>
           <h1 className="text-4xl font-bold">إضافة كتاب تطوعًا</h1>
         </div>
-        <p className="text-muted-foreground text-lg">ساهم في إثراء مكتبة النادي بإضافة كتاب جديد</p>
+        <p className="text-muted-foreground text-lg">
+          ساهم في إثراء مكتبة النادي بإضافة كتاب جديد
+        </p>
       </div>
 
       <Card className="border-2">
@@ -85,7 +107,9 @@ export default function AddBookPage() {
                 type="text"
                 required
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e: {
+                  target: { value: React.SetStateAction<string> };
+                }) => setTitle(e.target.value)}
                 placeholder="مثال: البداية والنهاية"
                 className="h-12 text-lg"
               />
@@ -100,7 +124,9 @@ export default function AddBookPage() {
                 type="text"
                 required
                 value={author}
-                onChange={(e) => setAuthor(e.target.value)}
+                onChange={(e: {
+                  target: { value: React.SetStateAction<string> };
+                }) => setAuthor(e.target.value)}
                 placeholder="مثال: ابن كثير"
                 className="h-12 text-lg"
               />
@@ -131,11 +157,15 @@ export default function AddBookPage() {
               <Textarea
                 id="description"
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e: {
+                  target: { value: React.SetStateAction<string> };
+                }) => setDescription(e.target.value)}
                 placeholder="وصف مختصر للكتاب وأهم محتوياته..."
                 className="min-h-32 text-base resize-none"
               />
-              <p className="text-sm text-muted-foreground">{description.length} / 500 حرف</p>
+              <p className="text-sm text-muted-foreground">
+                {description.length} / 500 حرف
+              </p>
             </div>
 
             <div className="space-y-3">
@@ -146,7 +176,9 @@ export default function AddBookPage() {
                 id="coverImage"
                 type="url"
                 value={coverImage}
-                onChange={(e) => setCoverImage(e.target.value)}
+                onChange={(e: {
+                  target: { value: React.SetStateAction<string> };
+                }) => setCoverImage(e.target.value)}
                 placeholder="https://example.com/book-cover.jpg"
                 className="h-12"
               />
@@ -154,15 +186,17 @@ export default function AddBookPage() {
               {coverImage && (
                 <Card className="overflow-hidden border-2">
                   <CardContent className="p-4">
-                    <p className="text-sm text-muted-foreground mb-3">معاينة الصورة:</p>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      معاينة الصورة:
+                    </p>
                     <div className="relative aspect-[3/4] max-w-xs mx-auto rounded-lg overflow-hidden">
                       <img
                         src={coverImage || "/placeholder.svg"}
                         alt="معاينة الغلاف"
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          e.currentTarget.src = ""
-                          e.currentTarget.style.display = "none"
+                          e.currentTarget.src = "";
+                          e.currentTarget.style.display = "none";
                         }}
                       />
                     </div>
@@ -179,7 +213,12 @@ export default function AddBookPage() {
             </div>
 
             <div className="pt-4 space-y-4">
-              <Button type="submit" disabled={loading || !title || !author || !category} size="lg" className="w-full">
+              <Button
+                type="submit"
+                disabled={loading || !title || !author || !category}
+                size="lg"
+                className="w-full"
+              >
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -201,5 +240,5 @@ export default function AddBookPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

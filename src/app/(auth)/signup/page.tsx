@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useToast } from "@/hooks/use-toast"
 import { Loader2, Mail, Lock, User, AlertCircle, CheckCircle2 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -24,7 +23,6 @@ export default function SignupPage() {
 
   const router = useRouter()
   const supabase = createClientComponentClient()
-  const { toast } = useToast()
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -60,10 +58,7 @@ export default function SignupPage() {
         }
       }
 
-      toast({
-        title: "تم إنشاء الحساب بنجاح!",
-        description: "يمكنك الآن تسجيل الدخول",
-      })
+      alert("تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب.")
 
       router.push("/login")
     } catch (err: any) {
