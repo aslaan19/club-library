@@ -30,7 +30,7 @@ export default function AdminContributionsPage() {
         );
         if (!response.ok) throw new Error("Failed to fetch contributions");
         const data = await response.json();
-        setContributions(data);
+        setContributions(data.contributions || []);
       } catch (error) {
         console.error("Failed to fetch contributions:", error);
       } finally {

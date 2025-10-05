@@ -31,7 +31,7 @@ export default function AdminLoansPage() {
         const response = await fetch(`/api/admin/loans?status=${filter}`);
         if (!response.ok) throw new Error("Failed to fetch loans");
         const data = await response.json();
-        setLoans(data);
+        setLoans(data.loans || []);
       } catch (error) {
         console.error("Failed to fetch loans:", error);
       } finally {

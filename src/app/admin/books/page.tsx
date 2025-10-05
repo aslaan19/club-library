@@ -11,7 +11,7 @@ export default function AdminBooksPage() {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const response = await fetch("/api/admin/books");
+        const response = await fetch("/api/books");
         if (!response.ok) throw new Error("Failed to fetch books");
         const data = await response.json();
         setBooks(data);

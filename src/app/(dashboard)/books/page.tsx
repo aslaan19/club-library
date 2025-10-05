@@ -1,8 +1,13 @@
-// app/(dashboard)/books/page.tsx
-'use client'
+"use client"
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { SetStateAction, useEffect, useState } from "react"
+import { BookCard } from "@/components/book-card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Search, Plus, Filter } from "lucide-react"
+import Link from "next/link"
+import Image from "next/image"
 
 interface Book {
   id: string
@@ -19,8 +24,8 @@ interface Book {
 export default function BooksPage() {
   const [books, setBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [category, setCategory] = useState('')
+  const [search, setSearch] = useState("")
+  const [category, setCategory] = useState("all") // Updated default value to "all"
 
   useEffect(() => {
     fetchBooks()
@@ -29,8 +34,8 @@ export default function BooksPage() {
   const fetchBooks = async () => {
     setLoading(true)
     const params = new URLSearchParams()
-    if (search) params.append('search', search)
-    if (category) params.append('category', category)
+    if (search) params.append("search", search)
+    if (category !== "all") params.append("category", category) // Updated condition to exclude "all"
 
     const res = await fetch(`/api/books?${params}`)
     const data = await res.json()
@@ -39,83 +44,92 @@ export default function BooksPage() {
   }
 
   const isAvailable = (book: Book) => {
-    return book.status === 'AVAILABLE' && book.loans.length === 0
+    return book.status === "AVAILABLE" && book.loans.length === 0
   }
 
   return (
-    <div className="container mx-auto p-8 ">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">المكتبة</h1>
-        <Link
-          href="/books/add"
-          className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
-        >
-          إضافة كتاب تطوعًا
-        </Link>
-      </div>
-
-      {/* Filters */}
-      <div className="mb-6 flex gap-4">
-        <input
-          type="text"
-          placeholder="ابحث عن كتاب..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border px-4 py-2 rounded w-full max-w-md"
-        />
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="border px-4 py-2 rounded"
-        >
-          <option value="">كل الفئات</option>
-          <option value="تاريخ">تاريخ</option>
-          <option value="روايات">روايات</option>
-          <option value="دين">دين</option>
-          <option value="سياسة">سياسة</option>
-          <option value="تطوير ذات">تطوير ذات</option>
-        </select>
-      </div>
-
-      {/* Books Grid */}
-      {loading ? (
-        <p>جاري التحميل...</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {books.map((book) => (
-            <Link
-              key={book.id}
-              href={`/books/${book.id}`}
-              className="border rounded-lg p-4 hover:shadow-lg transition"
-            >
-              {book.coverImage && (
-                <img
-                  src={book.coverImage}
-                  alt={book.title}
-                  className="w-full h-48 object-cover rounded mb-4"
-                />
-              )}
-              <h3 className="text-xl font-bold mb-2">{book.title}</h3>
-              <p className="text-gray-600 mb-2">{book.author}</p>
-              <p className="text-sm text-gray-500 mb-2">{book.category}</p>
-              <div className="flex items-center justify-between">
-                <span
-                  className={`text-sm font-semibold ${
-                    isAvailable(book) ? 'text-green-600' : 'text-red-600'
-                  }`}
-                >
-                  {isAvailable(book) ? 'متاح' : 'مُستعار'}
-                </span>
-                {book.contributor && (
-                  <span className="text-xs text-gray-400">
-                    تطوع: {book.contributor.name}
-                  </span>
-                )}
+    <div className="min-h-screen bg-background">
+      {/* Navbar */}
+      <nav className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <Link href="/dashboard" className="flex items-center gap-4">
+              <div className="relative w-32 h-12">
+                <Image src="/image.png" alt="مكتبة وعيّن" fill className="object-contain" />
               </div>
             </Link>
-          ))}
+            <Link href="/books/add">
+              <Button>
+                <Plus className="ml-2 h-4 w-4" />
+                إضافة كتاب تطوعًا
+              </Button>
+            </Link>
+          </div>
         </div>
-      )}
+      </nav>
+
+      {/* Content */}
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2">المكتبة</h1>
+          <p className="text-muted-foreground text-lg">استكشف مجموعتنا من الكتب</p>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <div className="relative flex-1">
+            <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="ابحث عن كتاب أو مؤلف..."
+              value={search}
+              onChange={(e: { target: { value: SetStateAction<string> } }) => setSearch(e.target.value)}
+              className="pr-10"
+            />
+          </div>
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <Filter className="ml-2 h-4 w-4" />
+              <SelectValue placeholder="كل الفئات" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل الفئات</SelectItem> // Updated value to "all"
+              <SelectItem value="تاريخ">تاريخ</SelectItem>
+              <SelectItem value="روايات">روايات</SelectItem>
+              <SelectItem value="دين">دين</SelectItem>
+              <SelectItem value="سياسة">سياسة</SelectItem>
+              <SelectItem value="تطوير ذات">تطوير ذات</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Books Grid */}
+        {loading ? (
+          <div className="text-center py-16">
+            <div className="text-xl font-bold text-muted-foreground">جاري التحميل...</div>
+          </div>
+        ) : books.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {books.map((book) => (
+              <BookCard
+                key={book.id}
+                id={book.id}
+                title={book.title}
+                author={book.author}
+                category={book.category}
+                coverImage={book.coverImage}
+                isAvailable={isAvailable(book)}
+                contributorName={book.contributor?.name}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <p className="text-xl text-muted-foreground">لم يتم العثور على كتب</p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

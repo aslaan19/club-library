@@ -23,14 +23,14 @@ export async function GET(request: Request) {
   }
 
   // Get contributions count and status breakdown
-  const total = await prisma.contributions.count();
-  const pending = await prisma.contributions.count({
+  const total = await prisma.contribution.count();
+  const pending = await prisma.contribution.count({
     where: { status: 'PENDING' },
   });
-  const approved = await prisma.contributions.count({
+  const approved = await prisma.contribution.count({
     where: { status: 'APPROVED' },
   });
-  const rejected = await prisma.contributions.count({
+  const rejected = await prisma.contribution.count({
     where: { status: 'REJECTED' },
   });
 

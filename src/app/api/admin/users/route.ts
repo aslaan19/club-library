@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '../../../../../lib/prisma'
 
 // app/api/admin/users/route.ts - إدارة المستخدمين
-export async function GET_USERS() {
+export async function GET() {
   const supabase = createRouteHandlerClient({ cookies })
   const {
     data: { session },

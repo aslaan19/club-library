@@ -30,32 +30,6 @@ export default function AdminUsersPage() {
     fetchUsers();
   }, []);
 
-  const handleRoleChange = async (
-    userId: string,
-    newRole: "USER" | "ADMIN"
-  ) => {
-    try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ role: newRole }),
-      });
-
-      if (!response.ok) throw new Error("Failed to update user role");
-
-      // Update the user in the list
-      setUsers(
-        users.map((user) =>
-          user.id === userId ? { ...user, role: newRole } : user
-        )
-      );
-    } catch (error) {
-      console.error("Failed to update user role:", error);
-    }
-  };
-
   if (loading) return <div>Loading...</div>;
 
   return (
@@ -98,21 +72,8 @@ export default function AdminUsersPage() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   {new Date(user.createdAt).toLocaleDateString()}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <select
-                    value={user.role}
-                    onChange={(e) =>
-                      handleRoleChange(
-                        user.id,
-                        e.target.value as "USER" | "ADMIN"
-                      )
-                    }
-                    className="border rounded px-2 py-1"
-                  >
-                    <option value="USER">User</option>
-                    <option value="ADMIN">Admin</option>
-                  </select>
-                </td>
+
+                <td className="px-6 py-4 whitespace-nowrap"></td>
               </tr>
             ))}
           </tbody>
