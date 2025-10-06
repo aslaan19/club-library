@@ -1,15 +1,26 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import { NextResponse } from 'next/server'
-import { prisma } from '../../../../../../../lib/prisma'
+// app/api/loans/overdue/route.ts
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { cookies } from "next/headers"
+import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
+export async function GET() {
+  const cookieStore = await cookies()
+  const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
-export async function GET_OVERDUE() {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const today = new Date()
 
   const overdueLoans = await prisma.loan.findMany({
     where: {
-      status: 'ACTIVE',
+      status: "ACTIVE",
       dueDate: {
         lt: today,
       },
@@ -22,16 +33,15 @@ export async function GET_OVERDUE() {
     },
   })
 
-  // تحديث حالتها إلى OVERDUE
   await prisma.loan.updateMany({
     where: {
-      status: 'ACTIVE',
+      status: "ACTIVE",
       dueDate: {
         lt: today,
       },
     },
     data: {
-      status: 'OVERDUE',
+      status: "OVERDUE",
     },
   })
 

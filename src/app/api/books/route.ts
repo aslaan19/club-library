@@ -1,10 +1,9 @@
-// app/api/books/route.ts
+// src/app/api/books/route.ts
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-// GET: جلب كل الكتب (مع فلاتر)
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const category = searchParams.get('category')
@@ -40,9 +39,10 @@ export async function GET(request: Request) {
   return NextResponse.json(books)
 }
 
-// POST: إضافة كتاب جديد (تطوع)
 export async function POST(request: Request) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const cookieStore = await cookies()
+  const supabase = createRouteHandlerClient({ cookies:  () => cookieStore })
+  
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -60,11 +60,10 @@ export async function POST(request: Request) {
       description,
       category,
       coverImage,
-      contributorId: session.user.id, // المتطوع
+      contributorId: session.user.id,
       status: 'AVAILABLE',
     },
   })
 
   return NextResponse.json(book)
 }
-
