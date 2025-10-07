@@ -71,7 +71,7 @@ export default function AdminLayout({
               />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-foreground">وعيّن</h2>
+              <h2 className="text-xl font-bold text-foreground">وعيّنا</h2>
               <p className="text-xs text-muted-foreground">لوحة الإدارة</p>
             </div>
           </div>

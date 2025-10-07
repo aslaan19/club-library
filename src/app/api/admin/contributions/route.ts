@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createRouteHandlerClient({ cookies });
 
   const {
     data: { session },
@@ -15,7 +15,6 @@ const supabase = createRouteHandlerClient({ cookies })
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Check if user is admin
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
   });
@@ -25,19 +24,18 @@ const supabase = createRouteHandlerClient({ cookies })
   }
 
   try {
-    const contributions = await prisma.contribution.findMany({
+    // Get all books that have contributors (not null)
+    const books = await prisma.book.findMany({
+      where: {
+        contributorId: {
+          not: null,
+        },
+      },
       include: {
-        user: {
+        contributor: {
           select: {
             name: true,
             email: true,
-          },
-        },
-        book: {
-          select: {
-            title: true,
-            author: true,
-            category: true,
           },
         },
       },
@@ -45,6 +43,23 @@ const supabase = createRouteHandlerClient({ cookies })
         createdAt: "desc",
       },
     });
+
+    // Transform to match the frontend expected format
+    const contributions = books.map((book) => ({
+      id: book.id,
+      status: "APPROVED", // All books in the system are considered approved
+      note: null,
+      createdAt: book.createdAt.toISOString(),
+      user: {
+        name: book.contributor?.name || "مجهول",
+        email: book.contributor?.email || "",
+      },
+      book: {
+        title: book.title,
+        author: book.author,
+        category: book.category,
+      },
+    }));
 
     return NextResponse.json({ contributions });
   } catch (error) {

@@ -65,29 +65,6 @@ export default function AdminContributionsPage() {
     );
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "APPROVED":
-        return (
-          <Badge className="bg-green-500/10 text-green-700 hover:bg-green-500/20 border-green-500/20">
-            مقبولة
-          </Badge>
-        );
-      case "REJECTED":
-        return (
-          <Badge className="bg-red-500/10 text-red-700 hover:bg-red-500/20 border-red-500/20">
-            مرفوضة
-          </Badge>
-        );
-      default:
-        return (
-          <Badge className="bg-yellow-500/10 text-yellow-700 hover:bg-yellow-500/20 border-yellow-500/20">
-            قيد المراجعة
-          </Badge>
-        );
-    }
-  };
-
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       {/* Header */}
@@ -123,7 +100,6 @@ export default function AdminContributionsPage() {
                   <CardTitle className="text-lg line-clamp-2">
                     {contribution.book.title}
                   </CardTitle>
-                  {getStatusBadge(contribution.status)}
                 </div>
                 <CardDescription className="line-clamp-1">
                   {contribution.book.author}

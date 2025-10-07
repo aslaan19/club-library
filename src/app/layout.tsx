@@ -16,7 +16,7 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  title: "مكتبة وعيّن | نظام إدارة الاستعارة",
+  title: "مكتبة وعيّنا | نظام إدارة الاستعارة",
   description: "نظام إدارة استعارة الكتب لنادي وعيّن",
 };
 

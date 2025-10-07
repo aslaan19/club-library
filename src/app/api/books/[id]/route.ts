@@ -1,33 +1,83 @@
-// src/app/api/books/[id]/route.ts
+// src/app/api/books/route.ts
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params
-  
-  const book = await prisma.book.findUnique({
-    where: { id },
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const category = searchParams.get('category')
+  const status = searchParams.get('status')
+  const search = searchParams.get('search')
+
+  const books = await prisma.book.findMany({
+    where: {
+      ...(category && { category }),
+      ...(status && { status: status as any }),
+      ...(search && {
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { author: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+    },
     include: {
       contributor: {
-        select: { name: true },
+        select: {
+          name: true,
+          email: true,
+        },
       },
       loans: {
         where: { status: 'ACTIVE' },
-        include: {
-          user: {
-            select: { name: true },
-          },
-        },
+        take: 1,
       },
     },
+    orderBy: { createdAt: 'desc' },
   })
 
-  if (!book) {
-    return NextResponse.json({ error: 'Book not found' }, { status: 404 })
+  return NextResponse.json(books)
+}
+
+export async function POST(request: Request) {
+const supabase = createRouteHandlerClient({ cookies })
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  return NextResponse.json(book)
+  const { title, author, description, category, coverImage } = await request.json()
+
+  // Create both book and contribution record in a transaction
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. Create the book
+    const book = await tx.book.create({
+      data: {
+        title,
+        author,
+        description,
+        category,
+        coverImage,
+        contributorId: session.user.id,
+        status: 'AVAILABLE',
+      },
+    })
+
+    // 2. Create contribution record
+    await tx.contribution.create({
+      data: {
+        userId: session.user.id,
+        bookId: book.id,
+        status: 'APPROVED', // Auto-approve
+        note: 'تمت الإضافة مباشرة من قبل الطالب',
+      },
+    })
+
+    return book
+  })
+
+  return NextResponse.json(result)
 }
