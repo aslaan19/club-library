@@ -59,16 +59,6 @@ export default function Error({
           </div>
         </CardHeader>
 
-        <CardContent>
-          {error.message && (
-            <div className="rounded-lg bg-destructive/5 border border-destructive/20 p-4">
-              <p className="text-sm text-destructive font-mono break-words">
-                {error.message}
-              </p>
-            </div>
-          )}
-        </CardContent>
-
         <CardFooter className="flex flex-col sm:flex-row gap-3">
           <Button onClick={reset} className="flex-1 gap-2" size="lg">
             <RefreshCcw className="h-4 w-4" />

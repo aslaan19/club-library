@@ -42,18 +42,18 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/dashboard" className="flex items-center gap-3 group">
-            <div className="relative w-32 h-12 rounded-lg overflow-hidden bg-black shadow-lg transition-transform group-hover:scale-105">
+          <Link href="/dashboard" className="flex items-center gap-3 group p-2">
+            <div className="relative w-32 h-15  mb-2 mt-2 rounded-lg overflow-hidden bg-black shadow-lg transition-transform group-hover:scale-105">
               <Image
                 src="/image.png"
                 alt="Waaeen Logo"
                 fill
-                className="object-contain p-1"
+                className="object-cover"
                 priority
               />
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-xl font-bold text-foreground">وَعْيُنَا</h1>
+              <h1 className="text-2xl font-bold text-foreground">وَعْيُنَا</h1>
               <p className="text-xs text-muted-foreground">مكتبة النادي</p>
             </div>
           </Link>

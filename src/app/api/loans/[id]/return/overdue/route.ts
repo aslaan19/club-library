@@ -5,9 +5,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 export async function GET() {
-  const cookieStore = await cookies()
-  const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
-
+const supabase = createRouteHandlerClient({ cookies })
   const {
     data: { session },
   } = await supabase.auth.getSession()

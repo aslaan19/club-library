@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { subDays, subMonths, subYears } from 'date-fns'
 
 export async function GET(request: Request) {
-  const supabase = createRouteHandlerClient({ cookies })
+const supabase = createRouteHandlerClient({ cookies })
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -85,13 +85,13 @@ export async function GET(request: Request) {
     })
 
     const formattedMostBorrowed = mostBorrowedBooks
-      .map((book: { id: any; title: any; author: any; _count: { loans: any } }) => ({
+      .map((book) => ({
         id: book.id,
         title: book.title,
         author: book.author,
         borrowCount: book._count.loans,
       }))
-      .filter((book: { borrowCount: number }) => book.borrowCount > 0)
+      .filter((book) => book.borrowCount > 0)
 
     // 3. أكثر المتطوعين
     const topContributors = await prisma.user.findMany({
@@ -116,7 +116,7 @@ export async function GET(request: Request) {
       take: 5,
     })
 
-    const formattedContributors = topContributors.map((user: { id: any; name: any; _count: { contributions: any } }) => ({
+    const formattedContributors = topContributors.map((user) => ({
       id: user.id,
       name: user.name,
       contributionCount: user._count.contributions,
@@ -146,25 +146,23 @@ export async function GET(request: Request) {
     })
 
     // دمج النشاطات
-    const activities = [
-      ...recentLoans.map((loan: { status: string; returnDate: { toISOString: () => any }; createdAt: { toISOString: () => any }; user: { name: any }; book: { title: any } }) => ({
-        type: loan.status === 'RETURNED' ? 'RETURN' : 'LOAN' as const,
-        date: loan.returnDate?.toISOString() || loan.createdAt.toISOString(),
-        details:
-          loan.status === 'RETURNED'
-            ? `تم إرجاع كتاب`
-            : `استعارة كتاب جديد`,
-        userName: loan.user.name,
-        bookTitle: loan.book.title,
-      })),
-      ...recentContributions.map((book: { createdAt: { toISOString: () => any }; contributor: { name: any }; title: any }) => ({
-        type: 'CONTRIBUTION' as const,
-        date: book.createdAt.toISOString(),
-        details: `إضافة كتاب جديد للمكتبة`,
-        userName: book.contributor?.name || 'مجهول',
-        bookTitle: book.title,
-      })),
-    ]
+    const loanActivities = recentLoans.map((loan) => ({
+      type: loan.status === 'RETURNED' ? ('RETURN' as const) : ('LOAN' as const),
+      date: loan.returnDate ? loan.returnDate.toISOString() : loan.createdAt.toISOString(),
+      details: loan.status === 'RETURNED' ? 'تم إرجاع كتاب' : 'استعارة كتاب جديد',
+      userName: loan.user.name,
+      bookTitle: loan.book.title,
+    }))
+
+    const contributionActivities = recentContributions.map((book) => ({
+      type: 'CONTRIBUTION' as const,
+      date: book.createdAt.toISOString(),
+      details: 'إضافة كتاب جديد للمكتبة',
+      userName: book.contributor?.name || 'مجهول',
+      bookTitle: book.title,
+    }))
+
+    const activities = [...loanActivities, ...contributionActivities]
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 15)
 

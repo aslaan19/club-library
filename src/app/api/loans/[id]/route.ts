@@ -8,8 +8,7 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const cookieStore = await cookies()
-  const supabase = createRouteHandlerClient({ cookies:  () => cookieStore })
+const supabase = createRouteHandlerClient({ cookies })
   const resolvedParams = await params
 
   const {

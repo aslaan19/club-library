@@ -6,8 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { addDays } from "date-fns"
 
 export async function GET(request: Request) {
-  const cookieStore = await cookies()
-  const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+const supabase = createRouteHandlerClient({ cookies })
 
   const {
     data: { session },
@@ -40,8 +39,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const cookieStore = await cookies()
-  const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+const supabase = createRouteHandlerClient({ cookies })
 
   const {
     data: { session },

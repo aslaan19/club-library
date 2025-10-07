@@ -1,14 +1,16 @@
+// src/app/api/admin/users/[id]/route.ts
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
-import { prisma } from '../../../../../../lib/prisma'
+import { prisma } from '@/lib/prisma'
 
-// app/api/admin/users/[id]/route.ts - تفاصيل طالب
-export async function GET_USER_DETAILS(
+export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const { id } = await params
+const supabase = createRouteHandlerClient({ cookies })
+  
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -26,7 +28,7 @@ export async function GET_USER_DETAILS(
   }
 
   const user = await prisma.user.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       loans: {
         include: { book: true },

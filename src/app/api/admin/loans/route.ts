@@ -2,6 +2,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { LoanStatus } from '@prisma/client'; // Import the enum
 
 export async function GET(request: Request) {
   const supabase = createRouteHandlerClient({ cookies });
@@ -13,7 +14,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Check if user is admin
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
   });
@@ -22,17 +22,17 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  // Get query parameters
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status');
   const page = parseInt(searchParams.get('page') ?? '1');
   const limit = parseInt(searchParams.get('limit') ?? '10');
   const skip = (page - 1) * limit;
 
-  // Build the where clause based on status
-  const where = status && status !== 'ALL' ? { status: status  } : {};
+  // Cast status to LoanStatus enum
+  const where = status && status !== 'ALL' 
+    ? { status: status as LoanStatus } 
+    : {};
 
-  // Get loans with user and book details
   const loans = await prisma.loan.findMany({
     where,
     include: {
@@ -59,7 +59,6 @@ export async function GET(request: Request) {
     take: limit,
   });
 
-  // Get total count for pagination
   const total = await prisma.loan.count({ where });
 
   return NextResponse.json({

@@ -5,9 +5,10 @@ import { prisma } from '@/lib/prisma'
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = createRouteHandlerClient({ cookies })
+  
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -25,10 +26,9 @@ export async function DELETE(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const { id } = params
+  const { id } = await params
 
   try {
-    // Check if the book exists
     const book = await prisma.book.findUnique({
       where: { id },
       include: {
@@ -44,7 +44,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Book not found' }, { status: 404 })
     }
 
-    // Check if the book has active loans
     if (book.loans.length > 0) {
       return NextResponse.json(
         { error: 'Cannot delete book with active loans' },
@@ -52,7 +51,6 @@ export async function DELETE(
       )
     }
 
-    // Delete the book
     await prisma.book.delete({
       where: { id },
     })

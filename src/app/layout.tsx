@@ -1,12 +1,18 @@
 import type React from "react";
 import type { Metadata } from "next";
-import { Cairo } from "next/font/google";
+import { Amiri, Tajawal } from "next/font/google";
 import "./globals.css";
 
-const cairo = Cairo({
+const amiri = Amiri({
   subsets: ["arabic"],
-  weight: ["400", "600", "700"],
-  variable: "--font-cairo",
+  weight: ["400", "700"],
+  variable: "--font-amiri",
+});
+
+const tajawal = Tajawal({
+  subsets: ["arabic"],
+  weight: ["400", "500", "700"],
+  variable: "--font-tajawal",
 });
 
 export const metadata: Metadata = {
@@ -21,7 +27,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
-      <body className={`${cairo.variable} font-sans antialiased`}>
+      <body
+        className={`${amiri.variable} ${tajawal.variable} font-sans antialiased`}
+      >
         {children}
       </body>
     </html>
