@@ -77,44 +77,8 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <nav className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-xl supports-[backdrop-filter]:bg-card/60 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="relative w-32 h-12 transition-transform hover:scale-105">
-                <Image
-                  src="/image.png"
-                  alt="مكتبة وعيّن"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-              <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <span className="font-medium">نظام إدارة المكتبة</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50">
-                <div className="w-2 h-2 rounded-full bg-success animate-pulse"></div>
-                <span className="text-sm font-medium">{user?.email}</span>
-              </div>
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                size="sm"
-                className="gap-2 bg-transparent"
-              >
-                <LogOut className="h-4 w-4" />
-                تسجيل الخروج
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       {/* Content */}
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="container mx-auto px-4  space-y-8">
         <div className="space-y-2">
           <h1 className="text-3xl md:text-4xl p-2 text-balance bg-gradient-to-l from-foreground via-foreground to-primary bg-clip-text text-transparent">
             مرحبًا، {user?.user_metadata?.name || "طالب"} 👋
