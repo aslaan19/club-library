@@ -1,15 +1,21 @@
-"use client"
+"use client";
 
-import { use, useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { ArrowRight, Calendar, User, BookOpen, Clock } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { StatusBadge } from "@/components/status-badge"
+import { use, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowRight, Calendar, User, BookOpen, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/status-badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,57 +26,57 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
 
 interface Book {
-  id: string
-  title: string
-  author: string
-  description: string | null
-  category: string
-  coverImage: string | null
-  status: string
-  contributor: { name: string } | null
+  id: string;
+  title: string;
+  author: string;
+  description: string | null;
+  category: string;
+  coverImage: string | null;
+  status: string;
+  contributor: { name: string } | null;
   loans: Array<{
-    id: string
-    status: string
-    dueDate: string
-    user: { name: string }
-  }>
+    id: string;
+    status: string;
+    dueDate: string;
+    user: { name: string };
+  }>;
 }
 
 export default function BookDetailsPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }) {
-  const resolvedParams = use(params)
-  const [book, setBook] = useState<Book | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [borrowing, setBorrowing] = useState(false)
-  const [days, setDays] = useState(7)
-  const router = useRouter()
+  const resolvedParams = use(params);
+  const [book, setBook] = useState<Book | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [borrowing, setBorrowing] = useState(false);
+  const [days, setDays] = useState(7);
+  const router = useRouter();
 
   useEffect(() => {
-    fetchBook()
-  }, [resolvedParams.id])
+    fetchBook();
+  }, [resolvedParams.id]);
 
   const fetchBook = async () => {
-    const res = await fetch(`/api/books/${resolvedParams.id}`)
+    const res = await fetch(`/api/books/${resolvedParams.id}`);
     if (res.ok) {
-      const data = await res.json()
-      setBook(data)
+      const data = await res.json();
+      setBook(data);
     }
-    setLoading(false)
-  }
+    setLoading(false);
+  };
 
   const handleBorrow = async () => {
     if (days > 14) {
-      alert("الحد الأقصى للاستعارة هو 14 يوم")
-      return
+      alert("الحد الأقصى للاستعارة هو 14 يوم");
+      return;
     }
 
-    setBorrowing(true)
+    setBorrowing(true);
     const res = await fetch("/api/loans", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -78,17 +84,17 @@ export default function BookDetailsPage({
         bookId: resolvedParams.id,
         days,
       }),
-    })
+    });
 
     if (res.ok) {
-      alert("تمت الاستعارة بنجاح!")
-      router.push("/my-loans")
+      alert("تمت الاستعارة بنجاح!");
+      router.push("/my-loans");
     } else {
-      const error = await res.json()
-      alert(error.error || "حدث خطأ")
+      const error = await res.json();
+      alert(error.error || "حدث خطأ");
     }
-    setBorrowing(false)
-  }
+    setBorrowing(false);
+  };
 
   if (loading) {
     return (
@@ -98,7 +104,7 @@ export default function BookDetailsPage({
           <p className="text-muted-foreground">جاري التحميل...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!book) {
@@ -107,7 +113,9 @@ export default function BookDetailsPage({
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>الكتاب غير موجود</CardTitle>
-            <CardDescription>لم نتمكن من العثور على الكتاب المطلوب</CardDescription>
+            <CardDescription>
+              لم نتمكن من العثور على الكتاب المطلوب
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full">
@@ -116,12 +124,14 @@ export default function BookDetailsPage({
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
-  const isAvailable = book.status === "AVAILABLE" && book.loans.length === 0
-  const activeLoan = book.loans.find((loan) => loan.status === "ACTIVE")
-  const dueDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+  // ✅ Safe to access book properties here - book is guaranteed to exist
+  const isAvailable =
+    book.status === "AVAILABLE" && (!book.loans || book.loans.length === 0);
+  const activeLoan = book.loans?.find((loan) => loan.status === "ACTIVE");
+  const dueDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
 
   return (
     <div className="container mx-auto p-4 md:p-8 max-w-7xl animate-in fade-in duration-500">
@@ -167,7 +177,9 @@ export default function BookDetailsPage({
         <div className="space-y-6">
           <div className="space-y-4">
             <div className="flex items-start justify-between gap-4">
-              <h1 className="text-4xl md:text-5xl font-bold leading-tight text-balance">{book.title}</h1>
+              <h1 className="text-4xl md:text-5xl font-bold leading-tight text-balance">
+                {book.title}
+              </h1>
               <StatusBadge status={isAvailable ? "available" : "borrowed"} />
             </div>
 
@@ -184,16 +196,28 @@ export default function BookDetailsPage({
             {book.description && (
               <Card className="bg-muted/30">
                 <CardContent className="p-6">
-                  <p className="text-foreground/80 leading-relaxed">{book.description}</p>
+                  <p className="text-foreground/80 leading-relaxed">
+                    {book.description}
+                  </p>
                 </CardContent>
               </Card>
             )}
           </div>
 
-          <Card className={isAvailable ? "border-success bg-success/5" : "border-destructive bg-destructive/5"}>
+          <Card
+            className={
+              isAvailable
+                ? "border-success bg-success/5"
+                : "border-destructive bg-destructive/5"
+            }
+          >
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
-                <div className={`rounded-full p-2 ${isAvailable ? "bg-success/10" : "bg-destructive/10"}`}>
+                <div
+                  className={`rounded-full p-2 ${
+                    isAvailable ? "bg-success/10" : "bg-destructive/10"
+                  }`}
+                >
                   {isAvailable ? (
                     <BookOpen className="h-5 w-5 text-success" />
                   ) : (
@@ -201,17 +225,29 @@ export default function BookDetailsPage({
                   )}
                 </div>
                 <div className="flex-1">
-                  <h3 className={`font-semibold mb-1 ${isAvailable ? "text-success" : "text-destructive"}`}>
-                    {isAvailable ? "الكتاب متاح للاستعارة" : "الكتاب مستعار حاليًا"}
+                  <h3
+                    className={`font-semibold mb-1 ${
+                      isAvailable ? "text-success" : "text-destructive"
+                    }`}
+                  >
+                    {isAvailable
+                      ? "الكتاب متاح للاستعارة"
+                      : "الكتاب مستعار حاليًا"}
                   </h3>
                   {activeLoan && (
                     <div className="text-sm space-y-1 text-muted-foreground">
                       <p>
-                        المستعير: <span className="font-medium text-foreground">{activeLoan.user.name}</span>
+                        المستعير:{" "}
+                        <span className="font-medium text-foreground">
+                          {activeLoan.user.name}
+                        </span>
                       </p>
                       <p className="flex items-center gap-2">
                         <Calendar className="h-3.5 w-3.5" />
-                        موعد الإرجاع: {new Date(activeLoan.dueDate).toLocaleDateString("ar-EG")}
+                        موعد الإرجاع:{" "}
+                        {new Date(activeLoan.dueDate).toLocaleDateString(
+                          "ar-EG"
+                        )}
                       </p>
                     </div>
                   )}
@@ -227,7 +263,9 @@ export default function BookDetailsPage({
                   <BookOpen className="h-5 w-5" />
                   استعارة الكتاب
                 </CardTitle>
-                <CardDescription>يمكنك استعارة الكتاب لمدة تصل إلى 14 يومًا</CardDescription>
+                <CardDescription>
+                  يمكنك استعارة الكتاب لمدة تصل إلى 14 يومًا
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-3">
@@ -247,14 +285,20 @@ export default function BookDetailsPage({
                     <Calendar className="h-4 w-4" />
                     <span>
                       موعد الإرجاع:{" "}
-                      <span className="font-semibold text-foreground">{dueDate.toLocaleDateString("ar-EG")}</span>
+                      <span className="font-semibold text-foreground">
+                        {dueDate.toLocaleDateString("ar-EG")}
+                      </span>
                     </span>
                   </div>
                 </div>
 
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button size="lg" className="w-full" disabled={borrowing || days > 14 || days < 1}>
+                    <Button
+                      size="lg"
+                      className="w-full"
+                      disabled={borrowing || days > 14 || days < 1}
+                    >
                       {borrowing ? "جاري الاستعارة..." : "استعارة الآن"}
                     </Button>
                   </AlertDialogTrigger>
@@ -271,15 +315,20 @@ export default function BookDetailsPage({
                             <strong>المدة:</strong> {days} يوم
                           </p>
                           <p>
-                            <strong>موعد الإرجاع:</strong> {dueDate.toLocaleDateString("ar-EG")}
+                            <strong>موعد الإرجاع:</strong>{" "}
+                            {dueDate.toLocaleDateString("ar-EG")}
                           </p>
                         </div>
-                        <p className="text-destructive text-sm">يرجى الالتزام بموعد الإرجاع لتجنب الغرامات</p>
+                        <p className="text-destructive text-sm">
+                          يرجى الالتزام بموعد الإرجاع
+                        </p>
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleBorrow}>تأكيد الاستعارة</AlertDialogAction>
+                      <AlertDialogAction onClick={handleBorrow}>
+                        تأكيد الاستعارة
+                      </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
@@ -289,5 +338,5 @@ export default function BookDetailsPage({
         </div>
       </div>
     </div>
-  )
+  );
 }

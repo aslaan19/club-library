@@ -1,83 +1,92 @@
-// src/app/api/books/route.ts
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+// src/app/api/books/[id]/route.ts
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const category = searchParams.get('category')
-  const status = searchParams.get('status')
-  const search = searchParams.get('search')
+import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { cookies } from "next/headers"
 
-  const books = await prisma.book.findMany({
-    where: {
-      ...(category && { category }),
-      ...(status && { status: status as any }),
-      ...(search && {
-        OR: [
-          { title: { contains: search, mode: 'insensitive' } },
-          { author: { contains: search, mode: 'insensitive' } },
-        ],
-      }),
-    },
-    include: {
-      contributor: {
-        select: {
-          name: true,
-          email: true,
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const { id } = params
+
+  try {
+    const book = await prisma.book.findUnique({
+      where: { id },
+      include: {
+        contributor: {
+          select: { name: true },
+        },
+        loans: {
+          where: { status: "ACTIVE" }, // ✅ Only return ACTIVE loans
+          include: {
+            user: { select: { name: true } },
+          },
         },
       },
-      loans: {
-        where: { status: 'ACTIVE' },
-        take: 1,
-      },
-    },
-    orderBy: { createdAt: 'desc' },
-  })
+    })
 
-  return NextResponse.json(books)
+    if (!book) {
+      return NextResponse.json({ error: "Book not found" }, { status: 404 })
+    }
+
+    return NextResponse.json(book)
+  } catch (error) {
+    console.error("Error fetching book:", error)
+    return NextResponse.json({ error: "Error fetching book" }, { status: 500 })
+  }
 }
 
-export async function POST(request: Request) {
-const supabase = createRouteHandlerClient({ cookies })
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const supabase = createRouteHandlerClient({ cookies })
   const {
     data: { session },
   } = await supabase.auth.getSession()
 
   if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { title, author, description, category, coverImage } = await request.json()
-
-  // Create both book and contribution record in a transaction
-  const result = await prisma.$transaction(async (tx) => {
-    // 1. Create the book
-    const book = await tx.book.create({
-      data: {
-        title,
-        author,
-        description,
-        category,
-        coverImage,
-        contributorId: session.user.id,
-        status: 'AVAILABLE',
-      },
-    })
-
-    // 2. Create contribution record
-    await tx.contribution.create({
-      data: {
-        userId: session.user.id,
-        bookId: book.id,
-        status: 'APPROVED', // Auto-approve
-        note: 'تمت الإضافة مباشرة من قبل الطالب',
-      },
-    })
-
-    return book
+  // Check if user is admin
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
   })
 
-  return NextResponse.json(result)
+  if (user?.role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
+  const { id } = params
+
+  try {
+    const book = await prisma.book.findUnique({
+      where: { id },
+      include: {
+        loans: {
+          where: { status: "ACTIVE" },
+        },
+      },
+    })
+
+    if (!book) {
+      return NextResponse.json({ error: "Book not found" }, { status: 404 })
+    }
+
+    if (book.loans.length > 0) {
+      return NextResponse.json(
+        { error: "Cannot delete book with active loans" },
+        { status: 400 }
+      )
+    }
+
+    await prisma.book.delete({ where: { id } })
+    return NextResponse.json({ message: "Book deleted successfully" })
+  } catch (error) {
+    console.error("Error deleting book:", error)
+    return NextResponse.json({ error: "Error deleting book" }, { status: 500 })
+  }
 }
