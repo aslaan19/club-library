@@ -23,6 +23,7 @@ import { Card } from "@/components/ui/card";
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
   const [activeLoans, setActiveLoans] = useState<any[]>([]);
+  const [totalLoans, setTotalLoans] = useState(0); // Add this
   const [loading, setLoading] = useState(true);
 
   const supabase = createClientComponentClient();
@@ -39,9 +40,15 @@ export default function DashboardPage() {
       } = await supabase.auth.getUser();
       setUser(authUser);
 
-      const response = await fetch("/api/loans?status=ACTIVE");
-      const loans = await response.json();
-      setActiveLoans(loans);
+      // Fetch active loans
+      const activeResponse = await fetch("/api/loans?status=ACTIVE");
+      const activeLoansData = await activeResponse.json();
+      setActiveLoans(activeLoansData);
+
+      // Fetch ALL loans (for total count)
+      const allLoansResponse = await fetch("/api/loans");
+      const allLoansData = await allLoansResponse.json();
+      setTotalLoans(allLoansData.length);
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {
@@ -78,12 +85,12 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Content */}
-      <div className="container mx-auto px-4  space-y-8">
+      <div className="container mx-auto px-4 space-y-8">
         <div className="space-y-2">
           <h1 className="text-3xl md:text-4xl p-2 text-balance bg-gradient-to-l from-foreground via-foreground to-primary bg-clip-text text-transparent">
             مرحبًا، {user?.user_metadata?.name || "طالب"} 👋
           </h1>
-          <p className="text-muted-foreground text-lg ">
+          <p className="text-muted-foreground text-lg">
             إليك نظرة عامة على نشاطك في المكتبة
           </p>
         </div>
@@ -131,6 +138,7 @@ export default function DashboardPage() {
             </div>
           </Card>
 
+          {/* FIXED CARD - Shows total loans count */}
           <Card className="relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-300 group">
             <div className="absolute inset-0 bg-gradient-to-br from-success/10 via-success/5 to-transparent"></div>
             <div className="relative p-6 space-y-4">
@@ -143,11 +151,11 @@ export default function DashboardPage() {
                     إجمالي الاستعارات
                   </p>
                   <p className="text-3xl font-bold mt-1">
-                    {activeLoans.length}
+                    {totalLoans} {/* Changed from activeLoans.length */}
                   </p>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">منذ بداية العام</p>
+              <p className="text-xs text-muted-foreground">منذ بداية التسجيل</p>
             </div>
           </Card>
         </div>

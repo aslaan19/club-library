@@ -1,39 +1,53 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { StatCard } from "@/components/stat-card"
-import { BookOpen, Users, BookMarked, AlertCircle, GitPullRequest, TrendingUp } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
+import { useEffect, useState } from "react";
+import { StatCard } from "@/components/stat-card";
+import {
+  BookOpen,
+  Users,
+  BookMarked,
+  AlertCircle,
+  GitPullRequest,
+  TrendingUp,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Stats = {
-  totalBooks: number
-  totalUsers: number
-  activeLoans: number
-  overdueLoans: number
-  pendingContributions: number
-}
+  totalBooks: number;
+  totalUsers: number;
+  activeLoans: number;
+  overdueLoans: number;
+  pendingContributions: number;
+};
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<Stats | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [booksRes, usersRes, loansRes, contributionsRes] = await Promise.all([
-          fetch("/api/admin/books/stats"),
-          fetch("/api/admin/users/stats"),
-          fetch("/api/admin/loans/stats"),
-          fetch("/api/admin/contributions/stats"),
-        ])
+        const [booksRes, usersRes, loansRes, contributionsRes] =
+          await Promise.all([
+            fetch("/api/admin/books/stats"),
+            fetch("/api/admin/users/stats"),
+            fetch("/api/admin/loans/stats"),
+            fetch("/api/admin/contributions/stats"),
+          ]);
 
         const [books, users, loans, contributions] = await Promise.all([
           booksRes.json(),
           usersRes.json(),
           loansRes.json(),
           contributionsRes.json(),
-        ])
+        ]);
 
         setStats({
           totalBooks: books.total,
@@ -41,16 +55,16 @@ export default function AdminDashboard() {
           activeLoans: loans.active,
           overdueLoans: loans.overdue,
           pendingContributions: contributions.pending,
-        })
+        });
       } catch (error) {
-        console.error("Failed to fetch stats:", error)
+        console.error("Failed to fetch stats:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchStats()
-  }, [])
+    fetchStats();
+  }, []);
 
   if (loading) {
     return (
@@ -65,18 +79,20 @@ export default function AdminDashboard() {
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   if (!stats) {
     return (
       <Card className="border-destructive">
         <CardHeader>
-          <CardTitle className="text-destructive">خطأ في تحميل البيانات</CardTitle>
+          <CardTitle className="text-destructive">
+            خطأ في تحميل البيانات
+          </CardTitle>
           <CardDescription>فشل في تحميل إحصائيات لوحة التحكم</CardDescription>
         </CardHeader>
       </Card>
-    )
+    );
   }
 
   return (
@@ -84,7 +100,9 @@ export default function AdminDashboard() {
       {/* Header */}
       <div>
         <h1 className="text-4xl font-bold text-foreground mb-2">لوحة التحكم</h1>
-        <p className="text-muted-foreground text-lg">نظرة عامة على نظام المكتبة</p>
+        <p className="text-muted-foreground text-lg">
+          نظرة عامة على نظام المكتبة
+        </p>
       </div>
 
       {/* Stats Grid */}
@@ -121,27 +139,30 @@ export default function AdminDashboard() {
           className="bg-gradient-to-br from-destructive/5 to-destructive/10 border-destructive/20"
         />
 
-        <StatCard
-          title="المساهمات المعلقة"
-          value={stats.pendingContributions}
-          icon={GitPullRequest}
-          description="بانتظار المراجعة"
-          className="bg-gradient-to-br from-warning/5 to-warning/10 border-warning/20"
-        />
-
         {/* Quick Actions Card */}
         <Card className="bg-gradient-to-br from-muted/50 to-muted border-muted-foreground/20">
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">إجراءات سريعة</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              إجراءات سريعة
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <a href="/admin/books/add" className="block text-sm text-primary hover:underline">
+            <a
+              href="/admin/books/add"
+              className="block text-sm text-primary hover:underline"
+            >
               + إضافة كتاب جديد
             </a>
-            <a href="/admin/contributions" className="block text-sm text-primary hover:underline">
+            <a
+              href="/admin/contributions"
+              className="block text-sm text-primary hover:underline"
+            >
               → مراجعة المساهمات
             </a>
-            <a href="/admin/loans" className="block text-sm text-primary hover:underline">
+            <a
+              href="/admin/loans"
+              className="block text-sm text-primary hover:underline"
+            >
               → إدارة الإعارات
             </a>
           </CardContent>
@@ -188,7 +209,9 @@ export default function AdminDashboard() {
                 <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">إعارات متأخرة</p>
-                  <p className="text-xs text-muted-foreground">{stats.overdueLoans} إعارة تحتاج إلى متابعة</p>
+                  <p className="text-xs text-muted-foreground">
+                    {stats.overdueLoans} إعارة تحتاج إلى متابعة
+                  </p>
                 </div>
               </div>
             )}
@@ -198,7 +221,9 @@ export default function AdminDashboard() {
                 <GitPullRequest className="h-5 w-5 text-warning flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">مساهمات معلقة</p>
-                  <p className="text-xs text-muted-foreground">{stats.pendingContributions} مساهمة بانتظار المراجعة</p>
+                  <p className="text-xs text-muted-foreground">
+                    {stats.pendingContributions} مساهمة بانتظار المراجعة
+                  </p>
                 </div>
               </div>
             )}
@@ -208,7 +233,9 @@ export default function AdminDashboard() {
                 <TrendingUp className="h-5 w-5 text-success flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">كل شيء على ما يرام!</p>
-                  <p className="text-xs text-muted-foreground">لا توجد تنبيهات في الوقت الحالي</p>
+                  <p className="text-xs text-muted-foreground">
+                    لا توجد تنبيهات في الوقت الحالي
+                  </p>
                 </div>
               </div>
             )}
@@ -216,5 +243,5 @@ export default function AdminDashboard() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

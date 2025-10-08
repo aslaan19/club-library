@@ -1,4 +1,4 @@
-// src/app/api/admin/users/route.ts
+// src/app/api/admin/users/stats/route.ts
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
@@ -14,6 +14,7 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // Check if the user is an admin
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
   })
@@ -22,17 +23,8 @@ export async function GET() {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const users = await prisma.user.findMany({
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-      createdAt: true,
-    },
-    orderBy: { createdAt: 'desc' },
-  })
+  // ✅ Get total number of users
+  const totalUsers = await prisma.user.count()
 
-  // Return array directly, not wrapped in object
-  return NextResponse.json(users)
+  return NextResponse.json({ total: totalUsers })
 }
