@@ -1,26 +1,43 @@
-// app/api/auth/signup/route.ts
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 
 export async function POST(request: Request) {
-  const { id, email, name } = await request.json()
+  const { email, password, name } = await request.json()
+  
+const supabase = createRouteHandlerClient({ cookies })
 
   try {
-    await prisma.user.create({
-      data: {
-        id,
-        email,
-        name,
-        role: 'STUDENT',
+    // Create user in Supabase Auth with role in metadata
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
+          role: 'STUDENT', // Store role in auth metadata
+        },
       },
     })
 
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Error creating user:', error)
-    return NextResponse.json(
-      { error: 'Failed to create user' },
-      { status: 500 }
-    )
+    if (authError) throw authError
+
+    // Create user in Prisma database
+    if (authData.user) {
+      await prisma.user.create({
+        data: {
+          id: authData.user.id,
+          email: authData.user.email!,
+          name,
+          role: 'STUDENT',
+        },
+      })
+    }
+
+    return NextResponse.json({ user: authData.user })
+  } catch (error: any) {
+    console.error('Signup error:', error)
+    return NextResponse.json({ error: error.message }, { status: 400 })
   }
 }

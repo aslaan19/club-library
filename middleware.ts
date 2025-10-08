@@ -11,34 +11,32 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  // المسارات العامة (لا تحتاج تسجيل دخول)
+  // Public paths (don't need login)
   const publicPaths = ['/login', '/signup']
   const isPublicPath = publicPaths.some(path => req.nextUrl.pathname.startsWith(path))
 
-  // إذا المستخدم مش مسجل دخول وحاول يدخل صفحة محمية
+  // If user is not logged in and trying to access protected page
   if (!session && !isPublicPath) {
-    return NextResponse.redirect(new URL('/login', req.url))
+    const loginUrl = new URL('/login', req.url)
+    loginUrl.searchParams.set('redirect', req.nextUrl.pathname)
+    return NextResponse.redirect(loginUrl)
   }
 
-  // إذا المستخدم مسجل دخول وحاول يدخل login/signup
+  // If user is logged in and trying to access login/signup
   if (session && isPublicPath) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
-  // حماية مسارات الأدمن
+  // Protect admin routes
   if (req.nextUrl.pathname.startsWith('/admin')) {
     if (!session) {
       return NextResponse.redirect(new URL('/login', req.url))
     }
 
-    // تحقق من دور المستخدم في Database
-    const { data: user } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', session.user.id)
-      .single()
+    // Get role from auth metadata (not database query)
+    const userRole = session.user.user_metadata?.role
 
-    if (user?.role !== 'ADMIN') {
+    if (userRole !== 'ADMIN') {
       return NextResponse.redirect(new URL('/dashboard', req.url))
     }
   }

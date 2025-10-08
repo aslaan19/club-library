@@ -1,10 +1,12 @@
+// src/app/admin/layout.tsx
 "use client";
 
 import type React from "react";
-
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import {
   LayoutDashboard,
   BookOpen,
@@ -15,8 +17,9 @@ import {
   Menu,
   X,
   LogOut,
+  Loader2,
+  ShieldAlert,
 } from "lucide-react";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Footer } from "@/components/footer";
@@ -36,7 +39,74 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClientComponentClient();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkAdminAccess();
+  }, []);
+
+  const checkAdminAccess = async () => {
+    try {
+      // Check if user is logged in
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        router.push("/login");
+        return;
+      }
+
+      // Check if user is admin
+      const response = await fetch("/api/admin/check-role");
+      const data = await response.json();
+
+      if (data.role !== "ADMIN") {
+        router.push("/dashboard");
+        return;
+      }
+
+      setIsAuthorized(true);
+    } catch (error) {
+      console.error("Admin check error:", error);
+      router.push("/dashboard");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">جاري التحقق من الصلاحيات...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-8">
+        <ShieldAlert className="h-16 w-16 text-destructive mb-4" />
+        <h1 className="text-2xl font-bold mb-2">غير مصرح</h1>
+        <p className="text-muted-foreground mb-6">
+          ليس لديك صلاحية الوصول لهذه الصفحة
+        </p>
+        <Button onClick={() => router.push("/dashboard")}>
+          العودة للوحة التحكم
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-background flex-col" dir="rtl">
@@ -109,9 +179,7 @@ export default function AdminLayout({
             <Button
               variant="ghost"
               className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
-              onClick={() => {
-                window.location.href = "/login";
-              }}
+              onClick={handleLogout}
             >
               <LogOut className="h-5 w-5" />
               <span className="font-medium">تسجيل الخروج</span>
