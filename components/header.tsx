@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   BookMarked,
   Plus,
+  Shield,
   LogOut,
   User,
 } from "lucide-react";
@@ -27,10 +28,11 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const navItems = [
-  { href: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
+  { href: "/dashboard", label: "الرئيسية", icon: LayoutDashboard },
   { href: "/books", label: "تصفح الكتب", icon: BookOpen },
   { href: "/my-loans", label: "إعاراتي", icon: BookMarked },
   { href: "/books/add", label: "إضافة كتاب", icon: Plus },
+  { href: "/admin", label: "الإدارة", icon: Shield },
 ];
 
 export function Header() {

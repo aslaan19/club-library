@@ -193,7 +193,7 @@ export default function AdminLayout({
             onClick={() => setIsMobileMenuOpen(false)}
           />
         )}
-
+  
         <main className="flex-1 overflow-auto">
           <div className="container mx-auto p-6 lg:p-8 max-w-7xl">
             {children}

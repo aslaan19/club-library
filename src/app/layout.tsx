@@ -2,6 +2,7 @@ import type React from "react";
 import type { Metadata } from "next";
 import { Amiri, Tajawal } from "next/font/google";
 import "./globals.css";
+import { Header } from "@/components/header";
 
 const amiri = Amiri({
   subsets: ["arabic"],
@@ -27,6 +28,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
+      <Header />
+
       <body
         className={`${amiri.variable} ${tajawal.variable} font-sans antialiased`}
       >
