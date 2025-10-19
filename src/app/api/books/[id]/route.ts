@@ -7,9 +7,9 @@ import { cookies } from "next/headers"
 
 export async function GET(
   request: Request,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> } // Fixed: Use destructured params
 ) {
-  const { id } = await context.params
+  const { id } = await params // Fixed: Await params
 
   try {
     const book = await prisma.book.findUnique({
@@ -19,7 +19,7 @@ export async function GET(
           select: { name: true },
         },
         loans: {
-          where: { status: "ACTIVE" }, // ✅ Only return ACTIVE loans
+          where: { status: "ACTIVE" },
           include: {
             user: { select: { name: true } },
           },
@@ -40,9 +40,10 @@ export async function GET(
 
 export async function DELETE(
   request: Request,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> } // Fixed: Use destructured params
 ) {
   const supabase = createRouteHandlerClient({ cookies })
+
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -60,7 +61,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  const { id } = await context.params
+  const { id } = await params // Fixed: Await params
 
   try {
     const book = await prisma.book.findUnique({
