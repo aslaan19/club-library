@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Amiri, Tajawal } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/header";
+import { Toaster } from "sonner"; // Don't forget this if you're using toasts
 
 const amiri = Amiri({
   subsets: ["arabic"],
@@ -28,12 +29,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
-      <Header />
-
       <body
         className={`${amiri.variable} ${tajawal.variable} font-sans antialiased`}
       >
+        <Header /> {/* Moved inside body */}
         {children}
+        <Toaster position="top-center" richColors /> {/* Add if using sonner */}
       </body>
     </html>
   );
