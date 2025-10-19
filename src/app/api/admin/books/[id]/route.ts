@@ -7,9 +7,9 @@ import { cookies } from "next/headers"
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // Changed to Promise
 ) {
-  const { id } = params
+  const { id } = await params // Added await
 
   try {
     const book = await prisma.book.findUnique({
@@ -37,12 +37,12 @@ export async function GET(
   }
 }
 
-// keep your DELETE function here ↓
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // Changed to Promise
 ) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createRouteHandlerClient({ cookies });
+
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -60,7 +60,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  const { id } = params
+  const { id } = await params // Added await
 
   try {
     const book = await prisma.book.findUnique({
