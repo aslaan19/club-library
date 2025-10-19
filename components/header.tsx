@@ -42,10 +42,10 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-16  mr-15 items-center justify-between">
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center gap-3 group p-2">
-            <div className="relative w-32 h-15  mb-2 mt-2 rounded-lg overflow-hidden bg-black shadow-lg transition-transform group-hover:scale-105">
+            <div className="relative  w-10 h-16  mb-2 mt-2 rounded-lg overflow-hidden bg-black shadow-lg transition-transform group-hover:scale-105">
               <Image
                 src="/image.png"
                 alt="Waaeen Logo"
