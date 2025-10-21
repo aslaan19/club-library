@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'm.media-amazon.com',
+      }
     ],
   },
   // Note: Removing i18n config as it's not supported in App Router
