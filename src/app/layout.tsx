@@ -4,7 +4,7 @@ import { Amiri, Tajawal } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/header";
 import { Toaster } from "sonner"; // Don't forget this if you're using toasts
-
+import { Analytics } from "@vercel/analytics/next";
 const amiri = Amiri({
   subsets: ["arabic"],
   weight: ["400", "700"],
