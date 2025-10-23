@@ -44,7 +44,7 @@ export default function SignupPage() {
     setError("");
 
     try {
-      // Call your existing API route - it handles everything
+      // Only call the API route - no Supabase here!
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -58,16 +58,12 @@ export default function SignupPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        console.error("API Error:", data);
         throw new Error(data.error || "فشل في إنشاء الحساب");
       }
 
-      console.log("User created successfully:", data);
-
-      alert("تم إنشاء الحساب بنجاح!  نورت مكتبة النادي يا باشا.");
+      alert("تم إنشاء الحساب بنجاح!.");
       router.push("/login");
     } catch (err: any) {
-      console.error("Signup error:", err);
       setError(err.message || "حدث خطأ في إنشاء الحساب");
     } finally {
       setLoading(false);
@@ -96,7 +92,7 @@ export default function SignupPage() {
               إنشاء حساب جديد
             </CardTitle>
             <CardDescription>
-              انضم إلى مكتبة وعيّن وابدأ رحلتك في عالم القراءة
+              انضم إلى مكتبة وعيّنا وابدأ رحلتك في عالم القراءة
             </CardDescription>
           </CardHeader>
 
