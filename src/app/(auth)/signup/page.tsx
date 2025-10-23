@@ -1,72 +1,91 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Mail, Lock, User, AlertCircle, CheckCircle2 } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Loader2,
+  Mail,
+  Lock,
+  User,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function SignupPage() {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const router = useRouter()
-  const supabase = createClientComponentClient()
+  const router = useRouter();
+  const supabase = createClientComponentClient();
 
   const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
     try {
+      // 1. Create user in Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             name,
+            role: "STUDENT",
           },
         },
-      })
+      });
 
-      if (authError) throw authError
+      if (authError) throw authError;
 
+      // 2. Create user in Prisma database
       if (authData.user) {
-        const response = await fetch("/api/auth/signup", {
+        const response = await fetch("/api/users/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             id: authData.user.id,
             email: authData.user.email,
             name,
+            role: "STUDENT",
           }),
-        })
+        });
 
         if (!response.ok) {
-          throw new Error("فشل في إنشاء الحساب في قاعدة البيانات")
+          throw new Error("فشل في إنشاء الحساب في قاعدة البيانات");
         }
       }
 
-      alert("تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب.")
-
-      router.push("/login")
+      alert(
+        "تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب."
+      );
+      router.push("/login");
     } catch (err: any) {
-      setError(err.message || "حدث خطأ في إنشاء الحساب")
+      setError(err.message || "حدث خطأ في إنشاء الحساب");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-accent/5 via-background to-primary/5">
@@ -74,14 +93,24 @@ export default function SignupPage() {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <div className="relative w-48 h-24">
-            <Image src="/image.png" alt="مكتبة وعيّن" fill className="object-contain" priority />
+            <Image
+              src="/image.png"
+              alt="مكتبة وعيّن"
+              fill
+              className="object-contain"
+              priority
+            />
           </div>
         </div>
 
         <Card className="shadow-2xl border-0">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-3xl font-bold">إنشاء حساب جديد</CardTitle>
-            <CardDescription>انضم إلى مكتبة وعيّن وابدأ رحلتك في عالم القراءة</CardDescription>
+            <CardTitle className="text-3xl font-bold">
+              إنشاء حساب جديد
+            </CardTitle>
+            <CardDescription>
+              انضم إلى مكتبة وعيّن وابدأ رحلتك في عالم القراءة
+            </CardDescription>
           </CardHeader>
 
           <CardContent>
@@ -102,7 +131,9 @@ export default function SignupPage() {
                     type="text"
                     placeholder="عبدالله أيمن"
                     value={name}
-                    onChange={(e: { target: { value: React.SetStateAction<string> } }) => setName(e.target.value)}
+                    onChange={(e: {
+                      target: { value: React.SetStateAction<string> };
+                    }) => setName(e.target.value)}
                     required
                     className="pr-10"
                   />
@@ -118,7 +149,9 @@ export default function SignupPage() {
                     type="email"
                     placeholder="your@email.com"
                     value={email}
-                    onChange={(e: { target: { value: React.SetStateAction<string> } }) => setEmail(e.target.value)}
+                    onChange={(e: {
+                      target: { value: React.SetStateAction<string> };
+                    }) => setEmail(e.target.value)}
                     required
                     className="pr-10"
                     dir="ltr"
@@ -135,16 +168,25 @@ export default function SignupPage() {
                     type="password"
                     placeholder="••••••••"
                     value={password}
-                    onChange={(e: { target: { value: React.SetStateAction<string> } }) => setPassword(e.target.value)}
+                    onChange={(e: {
+                      target: { value: React.SetStateAction<string> };
+                    }) => setPassword(e.target.value)}
                     required
                     minLength={6}
                     className="pr-10"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">الحد الأدنى 6 أحرف</p>
+                <p className="text-xs text-muted-foreground">
+                  الحد الأدنى 6 أحرف
+                </p>
               </div>
 
-              <Button type="submit" disabled={loading} className="w-full h-11 text-base font-bold" size="lg">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-11 text-base font-bold"
+                size="lg"
+              >
                 {loading ? (
                   <>
                     <Loader2 className="ml-2 h-4 w-4 animate-spin" />
@@ -163,15 +205,20 @@ export default function SignupPage() {
           <CardFooter className="flex flex-col space-y-4">
             <div className="text-sm text-center text-muted-foreground">
               لديك حساب بالفعل؟{" "}
-              <Link href="/login" className="font-bold text-primary hover:underline">
+              <Link
+                href="/login"
+                className="font-bold text-primary hover:underline"
+              >
                 تسجيل الدخول
               </Link>
             </div>
           </CardFooter>
         </Card>
 
-        <p className="text-center text-sm text-muted-foreground mt-6">نظام إدارة مكتبة نادي وعيّن</p>
+        <p className="text-center text-sm text-muted-foreground mt-6">
+          نظام إدارة مكتبة نادي وعيّن
+        </p>
       </div>
     </div>
-  )
+  );
 }
