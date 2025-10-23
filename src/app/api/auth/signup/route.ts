@@ -5,7 +5,19 @@ export async function POST(request: Request) {
   try {
     const { id, email, name, role } = await request.json()
 
-    // Only create user in Prisma (Auth already done in frontend)
+    console.log('Creating user:', { id, email, name, role })
+
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { id }
+    })
+
+    if (existingUser) {
+      console.log('User already exists:', existingUser)
+      return NextResponse.json({ user: existingUser }, { status: 200 })
+    }
+
+    // Create user in Prisma
     const user = await prisma.user.create({
       data: {
         id,
@@ -15,9 +27,14 @@ export async function POST(request: Request) {
       },
     })
 
-    return NextResponse.json({ user })
+    console.log('User created successfully:', user)
+    return NextResponse.json({ user }, { status: 200 })
   } catch (error: any) {
     console.error('Database user creation error:', error)
-    return NextResponse.json({ error: error.message }, { status: 400 })
+    console.error('Error details:', error.message, error.code)
+    return NextResponse.json({ 
+      error: error.message,
+      code: error.code 
+    }, { status: 500 })
   }
 }

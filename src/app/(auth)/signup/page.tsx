@@ -44,43 +44,30 @@ export default function SignupPage() {
     setError("");
 
     try {
-      // 1. Create user in Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-            role: "STUDENT",
-          },
-        },
+      // Call your existing API route - it handles everything
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+        }),
       });
 
-      if (authError) throw authError;
+      const data = await response.json();
 
-      // 2. Create user in Prisma database
-      if (authData.user) {
-        const response = await fetch("/api/users/create", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            id: authData.user.id,
-            email: authData.user.email,
-            name,
-            role: "STUDENT",
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error("فشل في إنشاء الحساب في قاعدة البيانات");
-        }
+      if (!response.ok) {
+        console.error("API Error:", data);
+        throw new Error(data.error || "فشل في إنشاء الحساب");
       }
 
-      alert(
-        "تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب."
-      );
+      console.log("User created successfully:", data);
+
+      alert("تم إنشاء الحساب بنجاح!  نورت مكتبة النادي يا باشا.");
       router.push("/login");
     } catch (err: any) {
+      console.error("Signup error:", err);
       setError(err.message || "حدث خطأ في إنشاء الحساب");
     } finally {
       setLoading(false);
@@ -216,7 +203,7 @@ export default function SignupPage() {
         </Card>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
-          نظام إدارة مكتبة نادي وعيّن
+          نظام إدارة مكتبة نادي وعيّنا
         </p>
       </div>
     </div>
